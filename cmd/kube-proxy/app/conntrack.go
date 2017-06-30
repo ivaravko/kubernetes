@@ -46,9 +46,9 @@ type realConntracker struct{}
 var readOnlySysFSError = errors.New("readOnlySysFS")
 
 func (rct realConntracker) SetMax(max int) error {
-	if err := rct.setIntSysCtl("nf_conntrack_max", max); err != nil {
-		return err
-	}
+	// if err := rct.setIntSysCtl("nf_conntrack_max", max); err != nil {
+	// 	return err
+	// }
 	glog.Infof("Setting nf_conntrack_max to %d", max)
 
 	// Linux does not support writing to /sys/module/nf_conntrack/parameters/hashsize
@@ -57,13 +57,13 @@ func (rct realConntracker) SetMax(max int) error {
 	// Usually that's fine. But in some configurations such as with github.com/kinvolk/kubeadm-nspawn,
 	// kube-proxy is in another netns.
 	// Therefore, check if writing in hashsize is necessary and skip the writing if not.
-	hashsize, err := readIntStringFile("/sys/module/nf_conntrack/parameters/hashsize")
-	if err != nil {
-		return err
-	}
-	if hashsize >= (max / 4) {
-		return nil
-	}
+	// hashsize, err := readIntStringFile("/sys/module/nf_conntrack/parameters/hashsize")
+	// if err != nil {
+	// 	return err
+	// }
+	// if hashsize >= (max / 4) {
+	// 	return nil
+	// }
 
 	// sysfs is expected to be mounted as 'rw'. However, it may be
 	// unexpectedly mounted as 'ro' by docker because of a known docker
@@ -72,16 +72,16 @@ func (rct realConntracker) SetMax(max int) error {
 	// don't set conntrack hashsize and return a special error
 	// readOnlySysFSError here. The caller should deal with
 	// readOnlySysFSError differently.
-	writable, err := isSysFSWritable()
-	if err != nil {
-		return err
-	}
-	if !writable {
-		return readOnlySysFSError
-	}
+	// writable, err := isSysFSWritable()
+	// if err != nil {
+	// 	return err
+	// }
+	// if !writable {
+	// 	return readOnlySysFSError
+	// }
 	// TODO: generify this and sysctl to a new sysfs.WriteInt()
 	glog.Infof("Setting conntrack hashsize to %d", max/4)
-	return writeIntStringFile("/sys/module/nf_conntrack/parameters/hashsize", max/4)
+	return nil //writeIntStringFile("/sys/module/nf_conntrack/parameters/hashsize", max/4)
 }
 
 func (rct realConntracker) SetTCPEstablishedTimeout(seconds int) error {
